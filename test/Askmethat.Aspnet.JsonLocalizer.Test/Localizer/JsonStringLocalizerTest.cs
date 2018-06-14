@@ -62,7 +62,6 @@ namespace Askmethat.Aspnet.JsonLocalizer.Test.Localizer
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
         public void Should_Read_Base_NotFound()
         {
             // Arrange
@@ -71,6 +70,7 @@ namespace Askmethat.Aspnet.JsonLocalizer.Test.Localizer
             var localizer = factory.Create(typeof(IStringLocalizer));
 
             var result = localizer.GetString("Nop");
+            Assert.IsTrue(result.ResourceNotFound);
         }
 
         [TestMethod]
@@ -83,8 +83,7 @@ namespace Askmethat.Aspnet.JsonLocalizer.Test.Localizer
             CultureInfo.CurrentUICulture = new CultureInfo("fr-FR");
 
             var result = localizer.GetString("NoFrench");
-
-            Assert.AreEqual("No more french", result);
+            Assert.AreEqual("NoFrench", result);
         }
 
         [TestMethod]
@@ -124,9 +123,10 @@ namespace Askmethat.Aspnet.JsonLocalizer.Test.Localizer
 
             CultureInfo.CurrentUICulture = new CultureInfo("de-DE");
             var result = localizer.GetString("CaseInsensitiveCultureName");
-            Assert.AreEqual("US English", result);
+            Assert.AreEqual("CaseInsensitiveCultureName", result);
+            Assert.IsTrue(result.ResourceNotFound);
         }
-        
+
         [TestMethod]
         public void Should_GetAllStrings_ByCaseInsensitiveCultureName()
         {
@@ -138,6 +138,7 @@ namespace Askmethat.Aspnet.JsonLocalizer.Test.Localizer
             var expected = new[] {
                 "Mon Nom de Base 1",
                 "Mon Nom de Base 2",
+                "NoFrench",
                 "French"
             };
             var results = localizer.GetAllStrings().Select(x => x.Value).ToArray();

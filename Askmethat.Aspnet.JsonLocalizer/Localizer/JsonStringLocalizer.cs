@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
+
 namespace Askmethat.Aspnet.JsonLocalizer.Localizer
 {
     /// <summary>
@@ -53,15 +54,11 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
 
         void InitJsonStringLocalizer()
         {
-
             string jsonPath = GetJsonRelativePath();
-            //read all json file
-            JsonSerializer serializer = new JsonSerializer();
 
             // Look for cache key.
             if (!_memCache.TryGetValue(CACHE_KEY, out localization))
             {
-
                 ConstructLocalizationObject(jsonPath);
                 // Set cache options.
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
@@ -95,7 +92,6 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
 
 
             MergeValues();
-
         }
 
         /// <summary>
@@ -146,12 +142,13 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
         {
             return AppContext.BaseDirectory;
         }
+
         public LocalizedString this[string name]
         {
             get
             {
-                var value = GetString(name);
-                return new LocalizedString(name, value ?? GetString(name, _localizationOptions.Value.DefaultCulture), resourceNotFound: value == null);
+                var value = GetStringSafely(name);
+                return new LocalizedString(name, value ?? name, resourceNotFound: value == null);
             }
         }
 
@@ -159,15 +156,25 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
         {
             get
             {
-                var format = GetString(name);
-                var value = string.Format(format ?? GetString(name, _localizationOptions.Value.DefaultCulture), arguments);
+                var format = GetStringSafely(name);
+                var value = String.Format(format ?? name, arguments);
                 return new LocalizedString(name, value, resourceNotFound: format == null);
             }
         }
 
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
         {
-            return localization.Where(l => l.Values.ContainsKey(CurrentCulture.Name)).Select(l => new LocalizedString(l.Key, l.Values[CurrentCulture.Name], true));
+            return includeParentCultures
+                ? localization
+                    .Select(
+                        l => {
+                            var value = GetStringSafely(l.Key);
+                            return new LocalizedString(l.Key, value ?? l.Key, resourceNotFound: value == null);
+                        }
+                    )
+                : localization
+                    .Where(l => l.Values.ContainsKey(CurrentCulture.Name))
+                    .Select(l => new LocalizedString(l.Key, l.Values[CurrentCulture.Name], false));
         }
 
         public IStringLocalizer WithCulture(CultureInfo culture)
@@ -175,46 +182,31 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
             return new JsonStringLocalizer(_env, _memCache, _resourcesRelativePath, _localizationOptions, culture);
         }
 
-        /// <summary>
-        /// Get the string from JSON cached file
-        /// </summary>
-        /// <param name="name">Value name</param>
-        /// <returns>Value if thing</returns>
-        string GetString(string name)
+        string GetStringSafely(string name, CultureInfo cultureInfo = null)
         {
-            return GetValueString(name, CurrentCulture);
-        }
-
-        /// <summary>
-        /// Get the string from JSON cached file
-        /// </summary>
-        /// <param name="name">Value name</param>
-        /// <returns>Value if thing</returns>
-        string GetString(string name, CultureInfo cultureInfo)
-        {
-            return GetValueString(name, cultureInfo);
-        }
-
-        string GetValueString(string name, CultureInfo cultureInfo)
-        {
-            var query = localization.Where(l => l.Values.ContainsKey(cultureInfo.Name));
-            var value = query.FirstOrDefault(l => l.Key == name);
-
-
-            if (value == null && cultureInfo.Name == _localizationOptions.Value.DefaultCulture.Name)
-            {
-                string msg = $"Any value was found for the Key : {name}";
-                Console.WriteLine(msg);
-                throw new ArgumentException(msg);
-            }
-            else if (value == null)
-            {
-                return null;
+            if (name == null) {
+                throw new ArgumentNullException(nameof(name));
             }
 
-            return value.Values[cultureInfo.Name];
-        }
+            if (cultureInfo == null) {
+                cultureInfo = CurrentCulture;
+            }
 
+            var valuesSection = localization
+                .Where(l => l.Values.ContainsKey(cultureInfo.Name))
+                .FirstOrDefault(l => l.Key == name);
+
+            if (valuesSection != null) {
+                return valuesSection.Values[cultureInfo.Name];
+            }
+
+            if (!cultureInfo.Equals(cultureInfo.Parent)) {
+                //Try the parent culture
+                return GetStringSafely(name, cultureInfo.Parent);
+            }
+
+            return null;
+        }
 
         private CultureInfo CurrentCulture => _withCulture ?? CultureInfo.CurrentUICulture;
 

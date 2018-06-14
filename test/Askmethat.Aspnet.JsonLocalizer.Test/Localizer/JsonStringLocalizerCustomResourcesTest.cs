@@ -58,7 +58,6 @@ namespace Askmethat.Aspnet.JsonLocalizer.Test.Localizer
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
         public void Should_Read_NotFound()
         {
             // Arrange
@@ -68,7 +67,7 @@ namespace Askmethat.Aspnet.JsonLocalizer.Test.Localizer
 
             var result = localizer.GetString("Nop");
 
-            Assert.AreEqual(String.Empty, result);
+            Assert.IsTrue(result.ResourceNotFound);
         }
 
         [TestMethod]

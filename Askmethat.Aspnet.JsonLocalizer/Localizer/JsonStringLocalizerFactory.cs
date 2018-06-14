@@ -38,19 +38,10 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
             _resourcesRelativePath = _localizationOptions.Value.ResourcesPath ?? String.Empty;
         }
 
-
         public IStringLocalizer Create(Type resourceSource)
-        {
-            return _localizationOptions.Value.DefaultCulture != null
-                ? (IStringLocalizer)new JsonStringLocalizer(_env, _memCache, _resourcesRelativePath, _localizationOptions)
-                : (IStringLocalizer)new JsonFallbackStringLocalizer(_env, _memCache, _resourcesRelativePath, _localizationOptions);
-        }
+            => new JsonStringLocalizer(_env, _memCache, _resourcesRelativePath, _localizationOptions);
 
         public IStringLocalizer Create(string baseName, string location)
-        {
-            return _localizationOptions.Value.DefaultCulture != null
-                ? (IStringLocalizer)new JsonStringLocalizer(_env, _memCache, _resourcesRelativePath, _localizationOptions)
-                : (IStringLocalizer)new JsonFallbackStringLocalizer(_env, _memCache, _resourcesRelativePath, _localizationOptions);
-        }
+            => new JsonStringLocalizer(_env, _memCache, _resourcesRelativePath, _localizationOptions);
     }
 }

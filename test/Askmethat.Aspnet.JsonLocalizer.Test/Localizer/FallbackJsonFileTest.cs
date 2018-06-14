@@ -31,7 +31,6 @@ namespace Askmethat.Aspnet.JsonLocalizer.Test.Localizer
                                 serv.AddJsonLocalization(opt =>
                                 {
                                     opt.ResourcesPath = "fallback";
-                                    opt.DefaultCulture = null;
                                 });
                                 this.services = serv;
                             })
