@@ -90,7 +90,6 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
 
 
             MergeValues();
-
         }
 
         /// <summary>
@@ -109,7 +108,7 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
                     var jsonValues = group
                         .Select(s => s.Values)
                         .SelectMany(dict => dict)
-                        .ToDictionary(t => t.Key, t => t.Value);
+                        .ToDictionary(t => t.Key, t => t.Value, StringComparer.OrdinalIgnoreCase);
 
                     tempLocalization.Add(new JsonLocalizationFormat()
                     {
@@ -172,7 +171,7 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
                         }
                     )
                 : localization
-                    .Where(l => l.Values.Keys.Any(lv => lv == CultureInfo.CurrentCulture.Name))
+                    .Where(l => l.Values.ContainsKey(CultureInfo.CurrentCulture.Name))
                     .Select(l => new LocalizedString(l.Key, l.Values[CultureInfo.CurrentCulture.Name], false));
         }
 
