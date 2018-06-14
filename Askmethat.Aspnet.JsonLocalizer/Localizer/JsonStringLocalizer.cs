@@ -25,27 +25,29 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
         readonly IOptions<JsonLocalizationOptions> _localizationOptions;
         readonly string _resourcesRelativePath;
         readonly TimeSpan _memCacheDuration;
+        readonly CultureInfo _withCulture;
         const string CACHE_KEY = "LocalizationBlob";
 
-        public JsonStringLocalizer(IHostingEnvironment env, IMemoryCache memCache, string resourcesRelativePath, IOptions<JsonLocalizationOptions> localizationOptions)
+        public JsonStringLocalizer(IHostingEnvironment env, IMemoryCache memCache, string resourcesRelativePath, IOptions<JsonLocalizationOptions> localizationOptions, CultureInfo withCulture = null)
         {
             _env = env;
             _memCache = memCache;
             _resourcesRelativePath = resourcesRelativePath;
             _localizationOptions = localizationOptions;
             _memCacheDuration = _localizationOptions.Value.CacheDuration;
+            _withCulture = withCulture;
             InitJsonStringLocalizer();
         }
 
 
-        public JsonStringLocalizer(IHostingEnvironment env, IMemoryCache memCache, IOptions<JsonLocalizationOptions> localizationOptions)
+        public JsonStringLocalizer(IHostingEnvironment env, IMemoryCache memCache, IOptions<JsonLocalizationOptions> localizationOptions, CultureInfo withCulture = null)
         {
             _env = env;
             _memCache = memCache;
             _localizationOptions = localizationOptions;
             _resourcesRelativePath = _localizationOptions.Value.ResourcesPath ?? String.Empty;
             _memCacheDuration = _localizationOptions.Value.CacheDuration;
-
+            _withCulture = withCulture;
             InitJsonStringLocalizer();
         }
 
@@ -165,12 +167,12 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
 
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
         {
-            return localization.Where(l => l.Values.ContainsKey(CultureInfo.CurrentCulture.Name)).Select(l => new LocalizedString(l.Key, l.Values[CultureInfo.CurrentCulture.Name], true));
+            return localization.Where(l => l.Values.ContainsKey(CurrentCulture.Name)).Select(l => new LocalizedString(l.Key, l.Values[CurrentCulture.Name], true));
         }
 
         public IStringLocalizer WithCulture(CultureInfo culture)
         {
-            return new JsonStringLocalizer(_env, _memCache, _resourcesRelativePath, _localizationOptions);
+            return new JsonStringLocalizer(_env, _memCache, _resourcesRelativePath, _localizationOptions, culture);
         }
 
         /// <summary>
@@ -180,7 +182,7 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
         /// <returns>Value if thing</returns>
         string GetString(string name)
         {
-            return GetValueString(name, CultureInfo.CurrentCulture);
+            return GetValueString(name, CurrentCulture);
         }
 
         /// <summary>
@@ -212,5 +214,9 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
 
             return value.Values[cultureInfo.Name];
         }
+
+
+        private CultureInfo CurrentCulture => _withCulture ?? CultureInfo.CurrentUICulture;
+
     }
 }
