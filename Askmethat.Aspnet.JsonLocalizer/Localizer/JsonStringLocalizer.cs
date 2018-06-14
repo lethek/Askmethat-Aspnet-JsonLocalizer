@@ -112,7 +112,7 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
                     var jsonValues = group
                         .Select(s => s.Values)
                         .SelectMany(dict => dict)
-                        .ToDictionary(t => t.Key, t => t.Value);
+                        .ToDictionary(t => t.Key, t => t.Value, StringComparer.OrdinalIgnoreCase);
 
                     tempLocalization.Add(new JsonLocalizationFormat()
                     {
@@ -165,7 +165,7 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
 
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
         {
-            return localization.Where(l => l.Values.Keys.Any(lv => lv == CultureInfo.CurrentCulture.Name)).Select(l => new LocalizedString(l.Key, l.Values[CultureInfo.CurrentCulture.Name], true));
+            return localization.Where(l => l.Values.ContainsKey(CultureInfo.CurrentCulture.Name)).Select(l => new LocalizedString(l.Key, l.Values[CultureInfo.CurrentCulture.Name], true));
         }
 
         public IStringLocalizer WithCulture(CultureInfo culture)
@@ -195,7 +195,7 @@ namespace Askmethat.Aspnet.JsonLocalizer.Localizer
 
         string GetValueString(string name, CultureInfo cultureInfo)
         {
-            var query = localization.Where(l => l.Values.Keys.Any(lv => lv == cultureInfo.Name));
+            var query = localization.Where(l => l.Values.ContainsKey(cultureInfo.Name));
             var value = query.FirstOrDefault(l => l.Key == name);
 
 
