@@ -146,19 +146,19 @@ namespace Askmethat.Aspnet.JsonLocalizer.Test.Localizer
 
 
         [TestMethod]
-        public void Should_Read_Base_Name1_WithCultureUS()
+        public void Should_Read_Base_Name1_WithCultureFR()
         {
-            CultureInfo.CurrentUICulture = new CultureInfo("fr-FR");
+            CultureInfo.CurrentUICulture = new CultureInfo("en-US");
 
             var sp = services.BuildServiceProvider();
             var factory = sp.GetService<IStringLocalizerFactory>();
             var defaultLocalizer = factory.Create(typeof(IStringLocalizer));
             
-            var enLocalizer = defaultLocalizer.WithCulture(new CultureInfo("fr-US"));
+            var enLocalizer = defaultLocalizer.WithCulture(new CultureInfo("fr-FR"));
 
             var result = enLocalizer.GetString("BaseName1");
 
-            Assert.AreEqual("My Base Name 1", result);
+            Assert.AreEqual("Mon Nom de Base 1", result);
         }
     }
 }
