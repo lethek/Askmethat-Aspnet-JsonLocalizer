@@ -142,6 +142,23 @@ namespace Askmethat.Aspnet.JsonLocalizer.Test.Localizer
             CollectionAssert.AreEqual(expected, results, new LocalizedStringComparer());
         }
 
+
+        [TestMethod]
+        public void Should_Read_Color_WithCultureParentFallbackFR()
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("en-AU");
+
+            var sp = services.BuildServiceProvider();
+            var factory = sp.GetService<IStringLocalizerFactory>();
+            var defaultLocalizer = factory.Create(typeof(IStringLocalizer));
+
+            var frLocalizer = defaultLocalizer.WithCulture(new CultureInfo("fr-FR"));
+
+            var result = frLocalizer.GetString("Color");
+
+            Assert.AreEqual("Couleur (neutral)", result);
+        }
+
         /// <summary>
         /// LocalizedString doesn't implement the IComparer interface required by CollectionAssert.AreEqual(), so providing one here
         /// </summary>
@@ -173,6 +190,6 @@ namespace Askmethat.Aspnet.JsonLocalizer.Test.Localizer
             => SetCurrentCulture(new CultureInfo(cultureName));
 
         private void SetCurrentCulture(CultureInfo cultureInfo)
-            => CultureInfo.CurrentCulture = cultureInfo;
+            => CultureInfo.CurrentUICulture = cultureInfo;
     }
 }
